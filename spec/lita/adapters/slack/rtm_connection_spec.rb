@@ -9,7 +9,7 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
     thread.join
   end
 
-  subject { described_class.new(robot, config, rtm_start_response) }
+  subject { described_class.new(robot, config) }
 
   let(:api) { instance_double("Lita::Adapters::Slack::API") }
   let(:registry) { Lita::Registry.new }
@@ -49,19 +49,20 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
     it "creates users with the results of rtm.start data" do
       expect(Lita::Adapters::Slack::UserCreator).to receive(:create_users)
 
-      described_class.build(robot, config)
+      described_class.build(robot, config).run
     end
 
     it "creates rooms with the results of rtm.start data" do
       expect(Lita::Adapters::Slack::RoomCreator).to receive(:create_rooms)
 
-      described_class.build(robot, config)
+      described_class.build(robot, config).run
     end
   end
 
   describe "#im_for" do
     before do
       allow(Lita::Adapters::Slack::API).to receive(:new).with(config).and_return(api)
+      allow(api).to receive(:rtm_start).and_return(rtm_start_response)
       allow(
         Lita::Adapters::Slack::IMMapping
       ).to receive(:new).with(api, []).and_return(im_mapping)
@@ -80,6 +81,11 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
   describe "#run" do
     let(:event) { double('Event', data: '{}') }
     let(:message_handler) { instance_double('Lita::Adapters::Slack::MessageHandler') }
+
+    before do
+      allow(Lita::Adapters::Slack::API).to receive(:new).with(config).and_return(api)
+      allow(api).to receive(:rtm_start).and_return(rtm_start_response)
+    end
 
     it "creates the WebSocket" do
       with_websocket(subject, queue) do |websocket|
@@ -112,6 +118,7 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
       # Testing private methods directly is bad, but it's difficult to get
       # the timing right when testing it by emitting the "message" event on
       # the WebSocket.
+      subject.run
       subject.send(:receive_message, event)
     end
 
@@ -137,7 +144,10 @@ describe Lita::Adapters::Slack::RTMConnection, lita: true do
       allow(websocket).to receive(:on)
       allow(websocket).to receive(:close)
       allow(Lita::Adapters::Slack::EventLoop).to receive(:defer).and_yield
+      allow(Lita::Adapters::Slack::API).to receive(:new).with(config).and_return(api)
+      allow(api).to receive(:rtm_start).and_return(rtm_start_response)
     end
+
 
     it "writes messages to the WebSocket" do
       with_websocket(subject, queue) do |websocket|
