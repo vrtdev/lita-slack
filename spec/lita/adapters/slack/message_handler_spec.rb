@@ -36,7 +36,7 @@ describe Lita::Adapters::Slack::MessageHandler, lita: true do
       end
       let(:message) { instance_double('Lita::Message', command!: false, extensions: {}) }
       let(:source) { instance_double('Lita::Source', private_message?: false) }
-      let(:user) { instance_double('Lita::User', id: 'U023BECGF') }
+      let(:user) { instance_double('Lita::User', id: 'U023BECGF', name: "litauser") }
       let(:room) { instance_double('Lita::Room', id: "C2147483705", name: "general") }
 
       before do
