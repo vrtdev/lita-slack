@@ -8,6 +8,7 @@ SimpleCov.start { add_filter "/spec/" }
 
 require "lita-slack"
 require "lita/rspec"
+require 'lita/redis_spec_helper'
 
 require "pry"
 

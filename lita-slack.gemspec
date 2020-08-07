@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "multi_json"
 
   spec.add_development_dependency "bundler"
+  spec.add_development_dependency 'mock_redis'
   spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"
