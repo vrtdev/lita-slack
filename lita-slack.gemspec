@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-slack"
-  spec.version       = "1.8.0"
+  spec.version       = "1.8.0.1"
   spec.authors       = ["Ken J.", "Jimmy Cuadra"]
   spec.email         = ["kenjij@gmail.com", "jimmy@jimmycuadra.com"]
   spec.description   = %q{Lita adapter for Slack.}
@@ -20,7 +20,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "lita", ">= 4.7.1"
   spec.add_runtime_dependency "multi_json"
 
-  spec.add_development_dependency "bundler", "~> 1.3"
+  spec.add_development_dependency "bundler"
+  spec.add_development_dependency 'mock_redis'
   spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rake"
