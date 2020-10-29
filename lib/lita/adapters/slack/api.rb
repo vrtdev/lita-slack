@@ -26,6 +26,14 @@ module Lita
           SlackIM.new(response_data["channel"]["id"], user_id)
         end
 
+        def groups_info(channel_id)
+          call_api("groups.info", channel: channel_id)
+        end
+
+        def conversations_info(channel_id)
+          call_api("conversations.info", channel: channel_id)
+        end
+
         def channels_info(channel_id)
           call_api("channels.info", channel: channel_id)
         end

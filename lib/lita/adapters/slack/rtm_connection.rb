@@ -34,7 +34,7 @@ module Lita
 
         def run(queue = nil, options = {})
           log.debug('[slack lita run] Start of rtm_connection.run...')
-          loop do 
+          loop do
             @reconnect = false
             EventLoop.run do
               log.debug('[slack rtm run] doing rtm_start...')
@@ -118,6 +118,8 @@ module Lita
           log.debug('xtra - receive_message')
           return if reconnect?(data) || goodbye?(data)
 
+          data['text'] = data['text'].strip.gsub("\u00A0", ' ') if data['text']
+          data['content'] = data['content'].strip.gsub("\u00A0", ' ') if data['content']
           EventLoop.defer { MessageHandler.new(robot, robot_id, data).handle }
         end
 
