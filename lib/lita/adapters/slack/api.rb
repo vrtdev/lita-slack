@@ -77,6 +77,15 @@ module Lita
           call_api("channels.setTopic", channel: channel, topic: topic)
         end
 
+        #  NEW API 20201202
+        def send_file(room_or_user, file, mime_type = 'text/plain')
+          call_api(
+            'files.upload',
+            channels: room_or_user.id,
+            file: Faraday::FilePart.new(file, mime_type)
+          )
+        end
+
         def rtm_start
           response_data = call_api("rtm.start")
 
@@ -117,7 +126,12 @@ module Lita
             unless config.proxy.nil?
               options = { proxy: config.proxy }
             end
-            Faraday.new(options)
+            Faraday.new(options) do |conn|
+              # POST/PUT params encoders:
+              conn.request :multipart
+              conn.request :url_encoded
+              conn.adapter :net_http
+            end
           end
         end
 
