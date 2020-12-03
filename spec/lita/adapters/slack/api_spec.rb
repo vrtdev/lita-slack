@@ -637,6 +637,60 @@ describe Lita::Adapters::Slack::API do
     end
   end
 
+  describe '#send_file' do
+    let(:file) { './Gemfile' }
+    let(:http_response) { MultiJson.dump({ ok: true }) }
+    let(:room) { Lita::Room.new('C1234567890') }
+    let(:stubs) do
+      Faraday::Adapter::Test::Stubs.new do |stub|
+        stub.post(
+          'https://slack.com/api/files.upload',
+          # token: token,
+          # channels: room.id,
+          # file: Faraday::FilePart.new(file, mime_type)
+        ) do
+          [http_status, {}, http_response]
+        end
+      end
+    end
+
+    context 'with a simple file' do
+      it 'sends the file' do
+        response = subject.send_file(room, file)
+
+        expect(response['ok']).to be(true)
+      end
+    end
+
+    context 'with a Slack error' do
+      let(:http_response) do
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
+      end
+
+      it 'raises a RuntimeError' do
+        expect { subject.send_file(room, file) }.to raise_error(
+          'Slack API call to files.upload returned an error: invalid_auth.'
+        )
+      end
+    end
+
+    context 'with an HTTP error' do
+      let(:http_status) { 422 }
+      let(:http_response) { '' }
+
+      it 'raises a RuntimeError' do
+        expect { subject.send_file(room, file) }.to raise_error(
+          "Slack API call to files.upload failed with status code 422: ''. Headers: {}"
+        )
+      end
+    end
+  end
+
   describe "#rtm_start" do
     let(:http_status) { 200 }
     let(:stubs) do
