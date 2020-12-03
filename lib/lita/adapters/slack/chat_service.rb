@@ -24,6 +24,10 @@ module Lita
         end
         alias_method :send_attachment, :send_attachments
 
+        def send_file(target, file, mime_type = 'text/plain')
+          api.send_file(target, file, mime_type)
+        end
+
         def channel_info(target)
           api.channels_info target.id
         end
