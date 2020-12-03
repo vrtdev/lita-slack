@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'faraday'
 
 require 'lita/adapters/slack/team_data'
@@ -20,64 +22,80 @@ module Lita
           @post_message_config[:unfurl_media] = config.unfurl_media unless config.unfurl_media.nil?
         end
 
-        def im_open(user_id)
-          response_data = call_api("im.open", user: user_id)
+        # TODO: resolve Deprecations
+        # https://api.slack.com/changelog/2020-01-deprecating-antecedents-to-the-conversations-api#methods
 
-          SlackIM.new(response_data["channel"]["id"], user_id)
+        # TODO: Deprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
+        def im_open(user_id)
+          response_data = call_api('im.open', user: user_id)
+
+          SlackIM.new(response_data['channel']['id'], user_id)
         end
 
+        # TODO: Depprecated https://api.slack.com/methods/groups.info -> https://api.slack.com/methods/conversations.info
+        # conversations_info already implemented below!
         def groups_info(channel_id)
-          call_api("groups.info", channel: channel_id)
+          call_api('groups.info', channel: channel_id)
         end
 
         def conversations_info(channel_id)
-          call_api("conversations.info", channel: channel_id)
+          call_api('conversations.info', channel: channel_id)
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/channels.info -> https://api.slack.com/methods/conversations.info
+        # conversations_info already implemented above!
         def channels_info(channel_id)
-          call_api("channels.info", channel: channel_id)
+          call_api('channels.info', channel: channel_id)
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/channels.list -> https://api.slack.com/methods/conversations.list
+        #                                                              -> https://api.slack.com/methods/users.conversations
         def channels_list
-          call_api("channels.list")
+          call_api('channels.list')
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/groups.list -> https://api.slack.com/methods/conversations.list
+        #                                                            -> https://api.slack.com/methods/users.conversations
         def groups_list
-          call_api("groups.list")
+          call_api('groups.list')
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/mpim.list -> https://api.slack.com/methods/conversations.list
+        #                                                          -> https://api.slack.com/methods/users.conversations
         def mpim_list
-          call_api("mpim.list")
+          call_api('mpim.list')
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/im.list -> https://api.slack.com/methods/conversations.list
+        #                                                        -> https://api.slack.com/methods/users.conversations
         def im_list
-          call_api("im.list")
+          call_api('im.list')
         end
 
         def send_attachments(room_or_user, attachments)
           call_api(
-            "chat.postMessage",
+            'chat.postMessage',
             as_user: true,
             channel: room_or_user.id,
-            attachments: MultiJson.dump(attachments.map(&:to_hash)),
+            attachments: MultiJson.dump(attachments.map(&:to_hash))
           )
         end
 
         def send_messages(channel_id, messages)
           call_api(
-            "chat.postMessage",
+            'chat.postMessage',
             **post_message_config,
             as_user: true,
             channel: channel_id,
-            text: messages.join("\n"),
+            text: messages.join("\n")
           )
         end
 
+        # TODO: Deprecated https://api.slack.com/methods/channels.setTopic -> https://api.slack.com/methods/conversations.setTopic
         def set_topic(channel, topic)
-          call_api("channels.setTopic", channel: channel, topic: topic)
+          call_api('channels.setTopic', channel: channel, topic: topic)
         end
 
-        #  NEW API 20201202
         def send_file(room_or_user, file, mime_type = 'text/plain')
           call_api(
             'files.upload',
@@ -86,24 +104,24 @@ module Lita
           )
         end
 
+        # TODO: RTM is also deprecated but has no end-date announced yet
+        # https://api.slack.com/rtm
         def rtm_start
-          response_data = call_api("rtm.start")
+          response_data = call_api('rtm.start')
 
           TeamData.new(
-            SlackIM.from_data_array(response_data["ims"]),
-            SlackUser.from_data(response_data["self"]),
-            SlackUser.from_data_array(response_data["users"]),
-            SlackChannel.from_data_array(response_data["channels"]) +
-              SlackChannel.from_data_array(response_data["groups"]),
-            response_data["url"],
+            SlackIM.from_data_array(response_data['ims']),
+            SlackUser.from_data(response_data['self']),
+            SlackUser.from_data_array(response_data['users']),
+            SlackChannel.from_data_array(response_data['channels']) +
+              SlackChannel.from_data_array(response_data['groups']),
+            response_data['url']
           )
         end
 
         private
 
-        attr_reader :stubs
-        attr_reader :config
-        attr_reader :post_message_config
+        attr_reader :stubs, :config, :post_message_config
 
         def call_api(method, post_data = {})
           response = connection.post(
@@ -113,7 +131,7 @@ module Lita
 
           data = parse_response(response, method)
 
-          raise "Slack API call to #{method} returned an error: #{data["error"]}." if data["error"]
+          raise "Slack API call to #{method} returned an error: #{data['error']}." if data['error']
 
           data
         end
