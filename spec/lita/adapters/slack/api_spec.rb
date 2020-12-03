@@ -11,11 +11,11 @@ describe Lita::Adapters::Slack::API do
     config.token = token
   end
 
-  describe "#im_open" do
+  describe "#conversations_open" do
     let(:channel_id) { 'D024BFF1M' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/im.open', token: token, user: user_id) do
+        stub.post('https://slack.com/api/conversations.open', token: token, users: user_id) do
           [http_status, {}, http_response]
         end
       end
@@ -33,7 +33,7 @@ describe Lita::Adapters::Slack::API do
       end
 
       it "returns a response with the IM's ID" do
-        response = subject.im_open(user_id)
+        response = subject.conversations_open(user_id)
 
         expect(response.id).to eq(channel_id)
       end
@@ -48,8 +48,8 @@ describe Lita::Adapters::Slack::API do
       end
 
       it "raises a RuntimeError" do
-        expect { subject.im_open(user_id) }.to raise_error(
-          "Slack API call to im.open returned an error: invalid_auth."
+        expect { subject.conversations_open(user_id) }.to raise_error(
+          "Slack API call to conversations.open returned an error: invalid_auth."
         )
       end
     end
@@ -59,8 +59,8 @@ describe Lita::Adapters::Slack::API do
       let(:http_response) { '' }
 
       it "raises a RuntimeError" do
-        expect { subject.im_open(user_id) }.to raise_error(
-          "Slack API call to im.open failed with status code 422: ''. Headers: {}"
+        expect { subject.conversations_open(user_id) }.to raise_error(
+          "Slack API call to conversations.open failed with status code 422: ''. Headers: {}"
         )
       end
     end

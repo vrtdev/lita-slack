@@ -17,7 +17,7 @@ describe Lita::Adapters::Slack::IMMapping do
 
     context "when a mapping is not yet stored" do
       before do
-        allow(api).to receive(:im_open).with('U023BECGF').and_return(im).once
+        allow(api).to receive(:conversations_open).with('U023BECGF').and_return(im).once
       end
 
       let(:ims) { [] }

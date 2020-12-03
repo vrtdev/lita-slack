@@ -20,7 +20,7 @@ module Lita
 
         def im_for(user_id)
           mapping.fetch(user_id) do
-            im = api.im_open(user_id)
+            im = api.conversations_open(user_id)
             mapping[user_id] = im.id
           end
         end

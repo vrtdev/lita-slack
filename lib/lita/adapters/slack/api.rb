@@ -25,9 +25,15 @@ module Lita
         # TODO: resolve Deprecations
         # https://api.slack.com/changelog/2020-01-deprecating-antecedents-to-the-conversations-api#methods
 
-        # TODO: Deprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
+        # TODO: Depprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
         def im_open(user_id)
-          response_data = call_api('im.open', user: user_id)
+          response_data = call_api("im.open", user: user_id)
+          SlackIM.new(response_data['channel']['id'], user_id)
+        end
+
+        # https://api.slack.com/methods/conversations.open replaced https://api.slack.com/methods/im.open
+        def conversations_open(user_id)
+          response_data = call_api('conversations.open', users: user_id)
 
           SlackIM.new(response_data['channel']['id'], user_id)
         end
@@ -38,6 +44,7 @@ module Lita
           call_api('groups.info', channel: channel_id)
         end
 
+        # https://api.slack.com/methods/conversations.info replaced https://api.slack.com/methods/groups.info
         def conversations_info(channel_id)
           call_api('conversations.info', channel: channel_id)
         end
