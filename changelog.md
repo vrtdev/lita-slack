@@ -8,13 +8,14 @@ Version format based on <http://semver.org/>
 
 ### Changed
 
-- Deprecated API method im_open replaced by conversations_open
-- Deprecated API method groups_info replaced by conversations_info
-- Deprecated API method channels_info replaced by conversations_info
-- Deprecated API method channels_list replaced by 
-- Deprecated API method groups_list replaced by 
-- Deprecated API method mpim_list replaced by 
-- Deprecated API method im_list replaced by 
+- Deprecated method im_open replaced by conversations_open
+- Deprecated method groups_info replaced by conversations_info
+- Deprecated method channels_info replaced by conversations_info
+- Deprecated API method channels.list replaced by conersations.list 
+- Deprecated API method groups.list replaced by conversations.list
+- Deprecated API method mpim.list replaced by conversations.list
+- Deprecated API method im.list replaced by conversations.list
+- Deprecated API method channels.setTopic replaced by conversations.setTopic
 
 ## [2.0.0.0] - 2020-10-29
 

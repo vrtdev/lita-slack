@@ -22,62 +22,30 @@ module Lita
           @post_message_config[:unfurl_media] = config.unfurl_media unless config.unfurl_media.nil?
         end
 
-        # TODO: resolve Deprecations
-        # https://api.slack.com/changelog/2020-01-deprecating-antecedents-to-the-conversations-api#methods
-
-        # # TODO: Depprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
-        # used when asking 'bot help'
-        # def im_open(user_id)
-        #   response_data = call_api("im.open", user: user_id)
-        #   SlackIM.new(response_data['channel']['id'], user_id)
-        # end
-
-        # https://api.slack.com/methods/conversations.open replaced https://api.slack.com/methods/im.open
         def conversations_open(user_id)
           response_data = call_api('conversations.open', users: user_id)
 
           SlackIM.new(response_data['channel']['id'], user_id)
         end
 
-        # # TODO: Depprecated https://api.slack.com/methods/groups.info -> https://api.slack.com/methods/conversations.info
-        # # conversations_info already implemented below!
-        # def groups_info(channel_id)
-        #   call_api('groups.info', channel: channel_id)
-        # end
-
-        # https://api.slack.com/methods/conversations.info replaced https://api.slack.com/methods/groups.info
         def conversations_info(channel_id)
           call_api('conversations.info', channel: channel_id)
         end
 
-        # TODO: Deprecated https://api.slack.com/methods/channels.info -> https://api.slack.com/methods/conversations.info
-        # # conversations_info already implemented above!
-        # def channels_info(channel_id)
-        #   call_api('channels.info', channel: channel_id)
-        # end
-
-        # TODO: Deprecated https://api.slack.com/methods/channels.list -> https://api.slack.com/methods/conversations.list
-        #                                                              -> https://api.slack.com/methods/users.conversations
         def channels_list
-          call_api('channels.list')
+          call_api('conversations.list', types: 'public_channel')
         end
 
-        # TODO: Deprecated https://api.slack.com/methods/groups.list -> https://api.slack.com/methods/conversations.list
-        #                                                            -> https://api.slack.com/methods/users.conversations
         def groups_list
-          call_api('groups.list')
+          call_api('conversations.list', types: 'private_channel')
         end
 
-        # TODO: Deprecated https://api.slack.com/methods/mpim.list -> https://api.slack.com/methods/conversations.list
-        #                                                          -> https://api.slack.com/methods/users.conversations
         def mpim_list
-          call_api('mpim.list')
+          call_api('conversations.list', types: 'mpim')
         end
 
-        # TODO: Deprecated https://api.slack.com/methods/im.list -> https://api.slack.com/methods/conversations.list
-        #                                                        -> https://api.slack.com/methods/users.conversations
         def im_list
-          call_api('im.list')
+          call_api('conversations.list', types: 'im')
         end
 
         def send_attachments(room_or_user, attachments)
@@ -99,9 +67,8 @@ module Lita
           )
         end
 
-        # TODO: Deprecated https://api.slack.com/methods/channels.setTopic -> https://api.slack.com/methods/conversations.setTopic
         def set_topic(channel, topic)
-          call_api('channels.setTopic', channel: channel, topic: topic)
+          call_api('conversations.setTopic', channel: channel, topic: topic)
         end
 
         def send_file(room_or_user, file, mime_type = 'text/plain')
