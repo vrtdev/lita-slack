@@ -13,7 +13,7 @@ Version format based on <http://semver.org/>
 - Deprecated method im_open replaced by conversations_open
 - Deprecated method groups_info replaced by conversations_info
 - Deprecated method channels_info replaced by conversations_info
-- Deprecated API method channels.list replaced by conersations.list 
+- Deprecated API method channels.list replaced by conversations.list
 - Deprecated API method groups.list replaced by conversations.list
 - Deprecated API method mpim.list replaced by conversations.list
 - Deprecated API method im.list replaced by conversations.list
