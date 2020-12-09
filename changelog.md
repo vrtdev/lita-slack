@@ -30,7 +30,7 @@ Using v 2 to indicate this is no longer the https://github.com/litaio/lita-slack
 
 ### Changed
 
-- Strip Now break spaces in message texts
+- Strip No-break spaces in message texts
 - Add API methods for identifying private chats
   - channel_info: Deprecated API, will need to be removed soon.
   - group_info : Deprecated API, will need to be removed soon.
