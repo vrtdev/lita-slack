@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 describe Lita::Adapters::Slack::API do
@@ -11,11 +13,11 @@ describe Lita::Adapters::Slack::API do
     config.token = token
   end
 
-  describe "#im_open" do
+  describe "#conversations_open" do
     let(:channel_id) { 'D024BFF1M' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/im.open', token: token, user: user_id) do
+        stub.post('https://slack.com/api/conversations.open', token: token, users: user_id) do
           [http_status, {}, http_response]
         end
       end
@@ -33,7 +35,7 @@ describe Lita::Adapters::Slack::API do
       end
 
       it "returns a response with the IM's ID" do
-        response = subject.im_open(user_id)
+        response = subject.conversations_open(user_id)
 
         expect(response.id).to eq(channel_id)
       end
@@ -48,8 +50,8 @@ describe Lita::Adapters::Slack::API do
       end
 
       it "raises a RuntimeError" do
-        expect { subject.im_open(user_id) }.to raise_error(
-          "Slack API call to im.open returned an error: invalid_auth."
+        expect { subject.conversations_open(user_id) }.to raise_error(
+          "Slack API call to conversations.open returned an error: invalid_auth."
         )
       end
     end
@@ -59,85 +61,93 @@ describe Lita::Adapters::Slack::API do
       let(:http_response) { '' }
 
       it "raises a RuntimeError" do
-        expect { subject.im_open(user_id) }.to raise_error(
-          "Slack API call to im.open failed with status code 422: ''. Headers: {}"
+        expect { subject.conversations_open(user_id) }.to raise_error(
+          "Slack API call to conversations.open failed with status code 422: ''. Headers: {}"
         )
       end
     end
   end
 
-  describe "#channels_info" do
+  describe '#conversations_info' do
     let(:channel_id) { 'C024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/channels.info', token: token, channel: channel_id) do
+        stub.post('https://slack.com/api/conversations.info', token: token, channel: channel_id) do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
             channel: {
-                id: 'C024BE91L'
+              id: 'C024BE91L'
             }
-        })
+          }
+        )
       end
 
-      it "returns a response with the Channel's ID" do
-        response = subject.channels_info(channel_id)
+      it "returns a response with the Conversation's ID" do
+        response = subject.conversations_info(channel_id)
 
         expect(response['channel']['id']).to eq(channel_id)
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: false,
-          error: 'channel_not_found'
-        })
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'channel_not_found'
+          }
+        )
       end
 
-      it "raises a RuntimeError" do
-        expect { subject.channels_info(channel_id) }.to raise_error(
-          "Slack API call to channels.info returned an error: channel_not_found."
+      it 'raises a RuntimeError' do
+        expect { subject.conversations_info(channel_id) }.to raise_error(
+          'Slack API call to conversations.info returned an error: channel_not_found.'
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
-        expect { subject.channels_info(channel_id) }.to raise_error(
-          "Slack API call to channels.info failed with status code 422: ''. Headers: {}"
+      it 'raises a RuntimeError' do
+        expect { subject.conversations_info(channel_id) }.to raise_error(
+          "Slack API call to conversations.info failed with status code 422: ''. Headers: {}"
         )
       end
     end
   end
 
-  describe "#channels_list" do
+  describe '#channels_list' do
     let(:channel_id) { 'C024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/channels.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'public_channel') do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
-            channel: [{
+            channel: [
+              {
                 id: 'C024BE91L'
-            }]
-        })
+              }
+            ]
+          }
+        )
       end
 
       it "returns a response with the Channel's ID" do
@@ -147,51 +157,57 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: false,
-          error: 'invalid_auth'
-        })
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
       end
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.channels_list }.to raise_error(
-          "Slack API call to channels.list returned an error: invalid_auth."
+          'Slack API call to conversations.list returned an error: invalid_auth.'
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.channels_list }.to raise_error(
-          "Slack API call to channels.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end
   end
 
-  describe "#groups_list" do
+  describe '#groups_list' do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/groups.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'private_channel') do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
-            groups: [{
+            groups: [
+              {
                 id: 'G024BE91L'
-            }]
-        })
+              }
+            ]
+          }
+        )
       end
 
       it "returns a response with groupss Channel ID's" do
@@ -201,51 +217,57 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: false,
-          error: 'invalid_auth'
-        })
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
       end
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.groups_list }.to raise_error(
-          "Slack API call to groups.list returned an error: invalid_auth."
+          'Slack API call to conversations.list returned an error: invalid_auth.'
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.groups_list }.to raise_error(
-          "Slack API call to groups.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end
   end
 
-  describe "#mpim_list" do
+  describe '#mpim_list' do
     let(:channel_id) { 'G024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/mpim.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'mpim') do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
-            groups: [{
+            groups: [
+              {
                 id: 'G024BE91L'
-            }]
-        })
+              }
+            ]
+          }
+        )
       end
 
       it "returns a response with MPIMs Channel ID's" do
@@ -255,7 +277,7 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
         MultiJson.dump({
           ok: false,
@@ -263,43 +285,45 @@ describe Lita::Adapters::Slack::API do
         })
       end
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.mpim_list }.to raise_error(
-          "Slack API call to mpim.list returned an error: invalid_auth."
+          'Slack API call to conversations.list returned an error: invalid_auth.'
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.mpim_list }.to raise_error(
-          "Slack API call to mpim.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end
   end
 
-   describe "#im_list" do
+  describe '#im_list' do
     let(:channel_id) { 'D024BFF1M' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/im.list', token: token) do
+        stub.post('https://slack.com/api/conversations.list', token: token, types: 'im') do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
             ims: [{
-                id: 'D024BFF1M'
+              id: 'D024BFF1M'
             }]
-        })
+          }
+        )
       end
 
       it "returns a response with IMs Channel ID's" do
@@ -309,28 +333,30 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: false,
-          error: 'invalid_auth'
-        })
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
       end
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.im_list }.to raise_error(
-          "Slack API call to im.list returned an error: invalid_auth."
+          'Slack API call to conversations.list returned an error: invalid_auth.'
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.im_list }.to raise_error(
-          "Slack API call to im.list failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.list failed with status code 422: ''. Headers: {}"
         )
       end
     end
@@ -579,13 +605,13 @@ describe Lita::Adapters::Slack::API do
     end
   end
 
-  describe "#set_topic" do
+  describe '#set_topic' do
     let(:channel) { 'C1234567890' }
     let(:topic) { 'Topic' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
         stub.post(
-          'https://slack.com/api/channels.setTopic',
+          'https://slack.com/api/conversations.setTopic',
           token: token,
           channel: channel,
           topic: topic
@@ -595,12 +621,14 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    context "with a successful response" do
+    context 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: true,
-          topic: 'Topic'
-        })
+        MultiJson.dump(
+          {
+            ok: true,
+            topic: 'Topic'
+          }
+        )
       end
 
       it "returns a response with the channel's topic" do
@@ -610,28 +638,84 @@ describe Lita::Adapters::Slack::API do
       end
     end
 
-    context "with a Slack error" do
+    context 'with a Slack error' do
       let(:http_response) do
-        MultiJson.dump({
-          ok: false,
-          error: 'invalid_auth'
-        })
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
       end
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.set_topic(channel, topic) }.to raise_error(
-          "Slack API call to channels.setTopic returned an error: invalid_auth."
+          'Slack API call to conversations.setTopic returned an error: invalid_auth.'
         )
       end
     end
 
-    context "with an HTTP error" do
+    context 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
+      it 'raises a RuntimeError' do
         expect { subject.set_topic(channel, topic) }.to raise_error(
-          "Slack API call to channels.setTopic failed with status code 422: ''. Headers: {}"
+          "Slack API call to conversations.setTopic failed with status code 422: ''. Headers: {}"
+        )
+      end
+    end
+  end
+
+  describe '#send_file' do
+    let(:file) { './Gemfile' }
+    let(:http_response) { MultiJson.dump({ ok: true }) }
+    let(:room) { Lita::Room.new('C1234567890') }
+    let(:stubs) do
+      Faraday::Adapter::Test::Stubs.new do |stub|
+        stub.post(
+          'https://slack.com/api/files.upload',
+          # token: token,
+          # channels: room.id,
+          # file: Faraday::FilePart.new(file, mime_type)
+        ) do
+          [http_status, {}, http_response]
+        end
+      end
+    end
+
+    context 'with a simple file' do
+      it 'sends the file' do
+        response = subject.send_file(room, file)
+
+        expect(response['ok']).to be(true)
+      end
+    end
+
+    context 'with a Slack error' do
+      let(:http_response) do
+        MultiJson.dump(
+          {
+            ok: false,
+            error: 'invalid_auth'
+          }
+        )
+      end
+
+      it 'raises a RuntimeError' do
+        expect { subject.send_file(room, file) }.to raise_error(
+          'Slack API call to files.upload returned an error: invalid_auth.'
+        )
+      end
+    end
+
+    context 'with an HTTP error' do
+      let(:http_status) { 422 }
+      let(:http_response) { '' }
+
+      it 'raises a RuntimeError' do
+        expect { subject.send_file(room, file) }.to raise_error(
+          "Slack API call to files.upload failed with status code 422: ''. Headers: {}"
         )
       end
     end

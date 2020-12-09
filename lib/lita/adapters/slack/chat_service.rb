@@ -1,4 +1,6 @@
-require "lita/adapters/slack/attachment"
+# frozen_string_literal: true
+
+require 'lita/adapters/slack/attachment'
 
 module Lita
   module Adapters
@@ -26,14 +28,6 @@ module Lita
 
         def send_file(target, file, mime_type = 'text/plain')
           api.send_file(target, file, mime_type)
-        end
-
-        def channel_info(target)
-          api.channels_info target.id
-        end
-
-        def group_info(target)
-          api.groups_info target.id
         end
 
         def conversation_info(target)
