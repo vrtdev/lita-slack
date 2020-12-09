@@ -25,11 +25,12 @@ module Lita
         # TODO: resolve Deprecations
         # https://api.slack.com/changelog/2020-01-deprecating-antecedents-to-the-conversations-api#methods
 
-        # TODO: Depprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
-        def im_open(user_id)
-          response_data = call_api("im.open", user: user_id)
-          SlackIM.new(response_data['channel']['id'], user_id)
-        end
+        # # TODO: Depprecated https://api.slack.com/methods/im.open -> https://api.slack.com/methods/conversations.open
+        # used when asking 'bot help'
+        # def im_open(user_id)
+        #   response_data = call_api("im.open", user: user_id)
+        #   SlackIM.new(response_data['channel']['id'], user_id)
+        # end
 
         # https://api.slack.com/methods/conversations.open replaced https://api.slack.com/methods/im.open
         def conversations_open(user_id)
@@ -38,11 +39,11 @@ module Lita
           SlackIM.new(response_data['channel']['id'], user_id)
         end
 
-        # TODO: Depprecated https://api.slack.com/methods/groups.info -> https://api.slack.com/methods/conversations.info
-        # conversations_info already implemented below!
-        def groups_info(channel_id)
-          call_api('groups.info', channel: channel_id)
-        end
+        # # TODO: Depprecated https://api.slack.com/methods/groups.info -> https://api.slack.com/methods/conversations.info
+        # # conversations_info already implemented below!
+        # def groups_info(channel_id)
+        #   call_api('groups.info', channel: channel_id)
+        # end
 
         # https://api.slack.com/methods/conversations.info replaced https://api.slack.com/methods/groups.info
         def conversations_info(channel_id)
@@ -50,10 +51,10 @@ module Lita
         end
 
         # TODO: Deprecated https://api.slack.com/methods/channels.info -> https://api.slack.com/methods/conversations.info
-        # conversations_info already implemented above!
-        def channels_info(channel_id)
-          call_api('channels.info', channel: channel_id)
-        end
+        # # conversations_info already implemented above!
+        # def channels_info(channel_id)
+        #   call_api('channels.info', channel: channel_id)
+        # end
 
         # TODO: Deprecated https://api.slack.com/methods/channels.list -> https://api.slack.com/methods/conversations.list
         #                                                              -> https://api.slack.com/methods/users.conversations

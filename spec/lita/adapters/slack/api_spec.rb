@@ -66,34 +66,36 @@ describe Lita::Adapters::Slack::API do
     end
   end
 
-  describe "#channels_info" do
+  describe '#conversations_info' do
     let(:channel_id) { 'C024BE91L' }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/channels.info', token: token, channel: channel_id) do
+        stub.post('https://slack.com/api/conversations.info', token: token, channel: channel_id) do
           [http_status, {}, http_response]
         end
       end
     end
 
-    describe "with a successful response" do
+    describe 'with a successful response' do
       let(:http_response) do
-        MultiJson.dump({
+        MultiJson.dump(
+          {
             ok: true,
             channel: {
-                id: 'C024BE91L'
+              id: 'C024BE91L'
             }
-        })
+          }
+        )
       end
 
-      it "returns a response with the Channel's ID" do
-        response = subject.channels_info(channel_id)
+      it "returns a response with the Conversation's ID" do
+        response = subject.conversations_info(channel_id)
 
         expect(response['channel']['id']).to eq(channel_id)
       end
     end
 
-    describe "with a Slack error" do
+    describe 'with a Slack error' do
       let(:http_response) do
         MultiJson.dump({
           ok: false,
@@ -101,20 +103,20 @@ describe Lita::Adapters::Slack::API do
         })
       end
 
-      it "raises a RuntimeError" do
-        expect { subject.channels_info(channel_id) }.to raise_error(
-          "Slack API call to channels.info returned an error: channel_not_found."
+      it 'raises a RuntimeError' do
+        expect { subject.conversations_info(channel_id) }.to raise_error(
+          "Slack API call to conversations.info returned an error: channel_not_found."
         )
       end
     end
 
-    describe "with an HTTP error" do
+    describe 'with an HTTP error' do
       let(:http_status) { 422 }
       let(:http_response) { '' }
 
-      it "raises a RuntimeError" do
-        expect { subject.channels_info(channel_id) }.to raise_error(
-          "Slack API call to channels.info failed with status code 422: ''. Headers: {}"
+      it 'raises a RuntimeError' do
+        expect { subject.conversations_info(channel_id) }.to raise_error(
+          "Slack API call to conversations.info failed with status code 422: ''. Headers: {}"
         )
       end
     end

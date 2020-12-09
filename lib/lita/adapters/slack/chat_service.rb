@@ -28,13 +28,13 @@ module Lita
           api.send_file(target, file, mime_type)
         end
 
-        def channel_info(target)
-          api.channels_info target.id
-        end
+        # def channel_info(target)
+        #   api.channels_info target.id
+        # end
 
-        def group_info(target)
-          api.groups_info target.id
-        end
+        # def group_info(target)
+        #   api.groups_info target.id
+        # end
 
         def conversation_info(target)
           api.conversations_info target.id

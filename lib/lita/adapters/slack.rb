@@ -71,7 +71,7 @@ module Lita
       end
 
       def channel_roster(room_id, api)
-        response = api.channels_info room_id
+        response = api.conversations_info room_id
         response['channel']['members']
       end
 
