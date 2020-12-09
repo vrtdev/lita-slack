@@ -6,6 +6,8 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.1.0.0] - 2020-12-09
+
 ### Changed
 
 - Deprecated method im_open replaced by conversations_open
