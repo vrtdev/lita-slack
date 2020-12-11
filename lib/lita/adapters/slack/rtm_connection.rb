@@ -118,8 +118,6 @@ module Lita
           log.debug('xtra - receive_message')
           return if reconnect?(data) || goodbye?(data)
 
-          data['text'] = data['text'].strip.gsub("\u00A0", ' ') if data['text']
-          data['content'] = data['content'].strip.gsub("\u00A0", ' ') if data['content']
           EventLoop.defer { MessageHandler.new(robot, robot_id, data).handle }
         end
 

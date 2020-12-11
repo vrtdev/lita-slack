@@ -24,7 +24,7 @@ module Lita
         def send_attachments(target, attachments)
           api.send_attachments(target, Array(attachments))
         end
-        alias_method :send_attachment, :send_attachments
+        alias send_attachment send_attachments
 
         def send_file(target, file, mime_type = 'text/plain')
           api.send_file(target, file, mime_type)

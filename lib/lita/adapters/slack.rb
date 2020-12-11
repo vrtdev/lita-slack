@@ -15,6 +15,8 @@ module Lita
       config :link_names, type: [true, false]
       config :unfurl_links, type: [true, false]
       config :unfurl_media, type: [true, false]
+      config :log_chats, type: [true, false]
+      config :log_chats_location, type: String, default: '/var/log/lita/channel_logs'
 
       # Provides an object for Slack-specific features.
       def chat_service

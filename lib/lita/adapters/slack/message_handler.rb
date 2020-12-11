@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'lita/adapters/slack/chat_logger'
+
 module Lita
   module Adapters
     class Slack < Adapter
@@ -11,6 +15,7 @@ module Lita
         end
 
         def handle
+          ChatLogger.log(robot, robot_id, data, type)
           case type
           when "hello"
             handle_hello
@@ -39,11 +44,9 @@ module Lita
         attr_reader :type
 
         def body
-          normalized_message = if data["text"]
-            data["text"].sub(/^\s*<@#{robot_id}>/, "@#{robot.mention_name}")
-          end
+          normalized_message = data["text"].sub(/^\s*<@#{robot_id}>/, "@#{robot.mention_name}") if data["text"]
 
-         normalized_message = remove_formatting(normalized_message) unless normalized_message.nil?
+          normalized_message = remove_formatting(normalized_message) unless normalized_message.nil?
 
           attachment_text = Array(data["attachments"]).map do |attachment|
             attachment["text"] || attachment["fallback"]
@@ -105,7 +108,7 @@ module Lita
           message.gsub('&lt;', '<')
                  .gsub('&gt;', '>')
                  .gsub('&amp;', '&')
-
+                 .gsub("\u00A0", ' ')
         end
 
         def channel
