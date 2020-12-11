@@ -10,14 +10,6 @@ module Lita
             return unless Lita.config.adapters.slack.log_chats
             log_location = Lita.config.adapters.slack.log_chats_location
 
-            lita_log.debug('< ========================== ChatLogger Start ====')
-            lita_log.debug("  robot: #{robot}") # - #{robot.inspect}")
-            # lita_log.debug("  robot: #{robot} - #{robot.inspect}")
-            lita_log.debug("  robot_id: #{robot_id}")
-            lita_log.debug("  data: #{data}")
-            lita_log.debug("  type: #{type}")
-            lita_log.debug('  ================================================ >')
-
             ensure_log_dir
 
             room_id = data['channel'] || 'room-id-not-discovered'
@@ -46,6 +38,13 @@ module Lita
             end
 
             return unless log_chat
+
+            lita_log.debug('< ========================== ChatLogger Start ====')
+            lita_log.debug("  robot: #{robot}")
+            lita_log.debug("  robot_id: #{robot_id}")
+            lita_log.debug("  data: #{data}")
+            lita_log.debug("  type: #{type}")
+            lita_log.debug('  ================================================ >')
 
             log_file_name = "#{log_location}/#{room_id}-#{room_name}.log"
             File.open(log_file_name, 'a') do |f|
