@@ -6,6 +6,17 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.0.0] - 2020-12-11
+
+### Changed
+
+- Moved 'Strip No-break spaces in message texts' to MessageHandler::remove_formatting
+
+  
+### Added
+
+- ChatLogger class that logs all non-private messages
+
 ## [2.1.0.0] - 2020-12-09
 
 ### Changed
