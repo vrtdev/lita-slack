@@ -80,7 +80,7 @@ module Lita
               message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message '#{p_message}'"
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
-              message = "Message Type: #{data['type']} : #{subtype}#{message}"
+              message = "#{subtype}#{message}"
             end
             [user_name, user_id, message]
           end
