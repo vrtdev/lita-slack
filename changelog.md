@@ -6,6 +6,12 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.2.0] - 2020-12-14
+
+### Changed
+
+- Ignore message_replied messages, those are duplicates.
+- Log channel join & leave
 
 ## [2.2.1.0] - 2020-12-14
 

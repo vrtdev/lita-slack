@@ -41,6 +41,12 @@ module Lita
               user_name, user_id, message = handle_message(data, user_name, user_id)
             # when 'user_typing'
             #   No logging of 'user_typing' events
+            when 'member_joined_channel'
+              inviter = User.find_by_id(data['inviter'])
+              inviter_message = " Invited by #{inviter.name}." if inviter
+              message = " -> #{user_name} Just joined the channel.#{inviter_message}"
+            when 'member_left_channel'
+              message = " <- #{user_name} Just left the channel."
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
               message = "Message Type: #{type} : #{subtype}#{message} (unhandled)"
@@ -55,6 +61,8 @@ module Lita
             lita_log.debug("  type: #{type}")
             lita_log.debug('  ================================================ >')
 
+            return if message == ''
+
             log_file_name = "#{log_location}/#{room_id}-#{room_name}.log"
             File.open(log_file_name, 'a') do |f|
               f.puts "[#{Time.now}] [#{user_name}/#{user_id}] #{message}"
@@ -63,6 +71,7 @@ module Lita
 
           def handle_message(data, user_name, user_id)
             message = data['text'] || 'message-not-discovered'
+            log_message = true
             case data['subtype']
             when 'message_changed'
               previous_message = data['previous_message']
@@ -91,19 +100,13 @@ module Lita
 
               message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message : #{p_dt} - '#{p_message}'"
               message += handle_message_files(previous_message, 'Deleted: ')
-            when 'message_replied' # Slack thread
-              # Maybe not log these. repetition of message already logged.
-              reply = data['message']
-              r_user_id = reply['user']
-              r_user = User.find_by_id(r_user_id)
-              r_user_name = r_user ? r_user.name : 'user-name-not-discovered'
-              r_message = reply['text'] || 'message-not-discovered'
-              r_dt = dt(reply['thread_ts'])
-
-              user_id = r_user_id
-              user_name = r_user_name
-
-              message = "Thread datetime : #{r_dt} - '#{r_message}'"
+            when 'message_replied' 
+              # Slack thread origin message repeated. This is sent together with each reply.
+              # Don't log these. repetition of message already logged.
+              log_message = false
+            when 'channel_join'
+              # duplicate of member_joined_channel event
+              log_message = false
             when 'bot_message'
               # message from other bot
               user_name = data['username']
@@ -127,6 +130,7 @@ module Lita
 
             message += handle_message_files(data)
 
+            message = '' unless log_message
             [user_name, user_id, message]
           end
 
