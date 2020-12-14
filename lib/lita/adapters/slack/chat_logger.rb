@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'date'
+
 module Lita
   module Adapters
     class Slack < Adapter
@@ -17,6 +21,11 @@ module Lita
             room_name = channel ? channel.name : 'room-name-not-discovered'
             log_chat = channel ? not_is_private?(channel) : false
 
+            if  !log_chat ||
+                type == 'user_typing'
+              return
+            end
+
             user_id = data['user']
             user = User.find_by_id(user_id)
             user_name = user ? user.name : 'user-name-not-discovered'
@@ -30,17 +39,17 @@ module Lita
               message = 'Bot connected to Slack'
             when 'message'
               user_name, user_id, message = handle_message(data, user_name, user_id)
-            when 'user_typing'
-              log_chat = false
+            # when 'user_typing'
+            #   No logging of 'user_typing' events
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
-              message = "Message Type: #{type} : #{subtype}#{message}"
+              message = "Message Type: #{type} : #{subtype}#{message} (unhandled)"
             end
 
-            return unless log_chat
+            # return unless log_chat
 
             lita_log.debug('< ========================== ChatLogger Start ====')
-            lita_log.debug("  robot: #{robot}")
+            # lita_log.debug("  robot: #{robot}")
             lita_log.debug("  robot_id: #{robot_id}")
             lita_log.debug("  data: #{data}")
             lita_log.debug("  type: #{type}")
@@ -58,6 +67,7 @@ module Lita
             when 'message_changed'
               previous_message = data['previous_message']
               p_message = previous_message['text'] || 'message-not-discovered'
+              p_dt = dt(previous_message['ts'])
 
               new_message = data['message']
               user_id = new_message['user']
@@ -65,23 +75,75 @@ module Lita
               user_name = user ? user.name : 'user-name-not-discovered'
               n_message = new_message['text'] || 'message-not-discovered'
 
-              message = "Message changed: Previous message '#{p_message}' : New message '#{n_message}"
+              message = "Message changed: Previous message : #{p_dt} - '#{p_message}' : New message '#{n_message}"
+              message += handle_message_files(previous_message, 'Previous: ')
+              message += handle_message_files(new_message, 'New:      ')
             when 'message_deleted'
               previous_message = data['previous_message']
               p_user_id = previous_message['user']
               p_user = User.find_by_id(p_user_id)
               p_user_name = p_user ? p_user.name : 'user-name-not-discovered'
               p_message = previous_message['text'] || 'message-not-discovered'
+              p_dt = dt(previous_message['ts'])
               # message_deleted does NOT show who deleted it!!!! ??????
               user_id = p_user_id
               user_name = p_user_name
 
-              message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message '#{p_message}'"
+              message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message : #{p_dt} - '#{p_message}'"
+              message += handle_message_files(previous_message, 'Deleted: ')
+            when 'message_replied' # Slack thread
+              # Maybe not log these. repetition of message already logged.
+              reply = data['message']
+              r_user_id = reply['user']
+              r_user = User.find_by_id(r_user_id)
+              r_user_name = r_user ? r_user.name : 'user-name-not-discovered'
+              r_message = reply['text'] || 'message-not-discovered'
+              r_dt = dt(reply['thread_ts'])
+
+              user_id = r_user_id
+              user_name = r_user_name
+
+              message = "Thread datetime : #{r_dt} - '#{r_message}'"
+            when 'bot_message'
+              # message from other bot
+              user_name = data['username']
+              user_id = data['bot_id']
+
+              bot_profile = data['bot_profile']
+              bot_name = bot_profile['name'] || ''
+
+              attachments = data['attachments']
+
+              message = "Bot message from '#{bot_name}'"
+              attachments.each do |attachment|
+                message += "\n\t#{attachment['fallback']}"
+              end
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
               message = "#{subtype}#{message}"
             end
+
+            message = "Reply to thread with datetime : #{dt(data['thread_ts'])}\n\t#{message}" if data['thread_ts']
+
+            message += handle_message_files(data)
+
             [user_name, user_id, message]
+          end
+
+          def dt(timestamp)
+            Time.at(timestamp.to_f).to_datetime
+          end
+
+          def handle_message_files(data, prefix = '')
+            filedata = ''
+            if data['files']
+              lita_log.debug('  Data has files.')
+              data['files'].each do |file|
+                lita_log.debug("  File: url: #{file['url_private_download']}")
+                filedata += "\n\t#{prefix}url_private_download: #{file['url_private_download']}"
+              end
+            end
+            filedata
           end
 
           def not_is_private?(room)
