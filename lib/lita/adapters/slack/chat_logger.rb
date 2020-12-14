@@ -119,7 +119,7 @@ module Lita
 
               message = "Bot message from '#{bot_name}'"
               attachments.each do |attachment|
-                message += "\n\t#{attachment['fallback']}"
+                message += "\n\t#{attachment['title']} - #{attachment['title_link']}\n\t#{attachment['text']}"
               end
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']

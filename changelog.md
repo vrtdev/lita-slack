@@ -6,6 +6,12 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.4.0] - 2020-12-14
+
+### Changed
+
+- Improve bot message log.
+
 ## [2.2.3.0] - 2020-12-14
 
 ### Changed
