@@ -6,6 +6,12 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.3.0] - 2020-12-14
+
+### Changed
+
+- Ignore channel_join & channel_leave message subtypes, those are duplicates.
+
 ## [2.2.2.0] - 2020-12-14
 
 ### Changed

@@ -43,7 +43,7 @@ module Lita
             #   No logging of 'user_typing' events
             when 'member_joined_channel'
               inviter = User.find_by_id(data['inviter'])
-              inviter_message = " Invited by #{inviter.name}." if inviter
+              inviter_message = " Invited by #{inviter.name}." if inviter.respond_to?(:name)
               message = " -> #{user_name} Just joined the channel.#{inviter_message}"
             when 'member_left_channel'
               message = " <- #{user_name} Just left the channel."
@@ -100,12 +100,12 @@ module Lita
 
               message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message : #{p_dt} - '#{p_message}'"
               message += handle_message_files(previous_message, 'Deleted: ')
-            when 'message_replied' 
+            when 'message_replied'
               # Slack thread origin message repeated. This is sent together with each reply.
               # Don't log these. repetition of message already logged.
               log_message = false
-            when 'channel_join'
-              # duplicate of member_joined_channel event
+            when 'channel_join', 'channel_leave'
+              # duplicate of member_joined_channel, member_left_channel event
               log_message = false
             when 'bot_message'
               # message from other bot
