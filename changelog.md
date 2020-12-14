@@ -11,6 +11,7 @@ Version format based on <http://semver.org/>
 ### Changed
 
 - Ignore message_replied messages, those are duplicates.
+- Log channel join & leave
 
 ## [2.2.1.0] - 2020-12-14
 

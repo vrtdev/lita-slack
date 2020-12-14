@@ -41,6 +41,12 @@ module Lita
               user_name, user_id, message = handle_message(data, user_name, user_id)
             # when 'user_typing'
             #   No logging of 'user_typing' events
+            when 'member_joined_channel'
+              inviter = User.find_by_id(data['inviter'])
+              inviter_message = " Invited by #{inviter.name}." if inviter
+              message = " -> #{user_name} Just joined the channel.#{inviter_message}"
+            when 'member_left_channel'
+              message = " <- #{user_name} Just left the channel."
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
               message = "Message Type: #{type} : #{subtype}#{message} (unhandled)"
@@ -97,6 +103,9 @@ module Lita
             when 'message_replied' 
               # Slack thread origin message repeated. This is sent together with each reply.
               # Don't log these. repetition of message already logged.
+              log_message = false
+            when 'channel_join'
+              # duplicate of member_joined_channel event
               log_message = false
             when 'bot_message'
               # message from other bot
