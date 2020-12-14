@@ -6,6 +6,13 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+
+## [2.2.1.0] - 2020-12-14
+
+### Changed
+
+- More message types logged with relevant info.
+
 ## [2.2.0.0] - 2020-12-11
 
 ### Changed
