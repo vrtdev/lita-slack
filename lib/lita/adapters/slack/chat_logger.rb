@@ -14,10 +14,8 @@ module Lita
             log_location = Lita.config.adapters.slack.log_chats_location
             ensure_log_dir
 
-            lita_log.debug("--> data: #{data}")
-
-            room_id = data['channel'] || 'no-channel-id'
-            channel = Lita::Room.find_by_id(room_id) if data['channel']
+            room_id = data['channel'] || data.dig('item', 'channel') || 'no-channel-id'
+            channel = Lita::Room.find_by_id(room_id) if room_id != 'no-channel-id'
             room_name = channel.class != NilClass ? channel.name : 'room-name-not-discovered'
             log_chat = channel.class != NilClass ? not_is_private?(robot.chat_service.conversation_info(channel)) : true
 
@@ -42,7 +40,16 @@ module Lita
               user_name, user_id, message = handle_message(data, user_name, user_id)
             # when 'user_typing'
             #   No logging of 'user_typing' events
-
+            when 'reaction_added'
+              r_type = data['item']['type']
+              r_ts = data['item']['ts']
+              reaction = data['reaction']
+              message = "reaction added to #{r_type} [#{r_ts}] #{reaction}"
+            when 'reaction_removed'
+              r_type = data['item']['type']
+              r_ts = data['item']['ts']
+              reaction = data['reaction']
+              message = "reaction removed from #{r_type} [#{r_ts}] #{reaction}"
             when 'member_joined_channel'
               inviter = User.find_by_id(data['inviter'])
               inviter_message = " Invited by #{inviter.name}." if inviter.respond_to?(:name)
