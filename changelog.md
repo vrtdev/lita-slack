@@ -6,6 +6,13 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.5.0] - 2020-12-15
+
+### Changed
+
+- Improve bot message log format.
+- Add event timestamps for easy cross referencing.
+
 ## [2.2.4.0] - 2020-12-14
 
 ### Changed
