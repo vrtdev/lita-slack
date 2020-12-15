@@ -6,6 +6,12 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.6.0] - 2020-12-15
+
+### Added
+
+- reaction_added & reaction_removed handled
+
 ## [2.2.5.0] - 2020-12-15
 
 ### Changed
