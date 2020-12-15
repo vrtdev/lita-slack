@@ -9,38 +9,40 @@ module Lita
       class ChatLogger
         class << self
           def log(robot, robot_id, data, type)
-            @robot = robot
-
             return unless Lita.config.adapters.slack.log_chats
-            log_location = Lita.config.adapters.slack.log_chats_location
 
+            log_location = Lita.config.adapters.slack.log_chats_location
             ensure_log_dir
 
-            room_id = data['channel'] || 'room-id-not-discovered'
-            channel = Lita::Room.find_by_id(room_id)
-            room_name = channel ? channel.name : 'room-name-not-discovered'
-            log_chat = channel ? not_is_private?(channel) : false
+            lita_log.debug("--> data: #{data}")
 
-            if  !log_chat ||
-                type == 'user_typing'
-              return
-            end
+            room_id = data['channel'] || 'no-channel-id'
+            channel = Lita::Room.find_by_id(room_id) if data['channel']
+            room_name = channel.class != NilClass ? channel.name : 'room-name-not-discovered'
+            log_chat = channel.class != NilClass ? not_is_private?(robot.chat_service.conversation_info(channel)) : true
 
+            events_not_to_log = %w[user_typing file_public file_shared]
+            return if !log_chat || events_not_to_log.include?(type)
+
+            ts = data['event_ts']
             user_id = data['user']
             user = User.find_by_id(user_id)
             user_name = user ? user.name : 'user-name-not-discovered'
-            message = data['text'] || 'message-not-discovered'
+            message = data['text'] || ''
 
             case type
             when 'hello'
               room_id = 'Slack'
               room_name = 'Slack'
-              user_name = 'Bot'
+              user_id = robot_id
+              user = User.find_by_id(user_id)
+              user_name = user ? user.name : 'user-name-not-discovered'
               message = 'Bot connected to Slack'
             when 'message'
               user_name, user_id, message = handle_message(data, user_name, user_id)
             # when 'user_typing'
             #   No logging of 'user_typing' events
+
             when 'member_joined_channel'
               inviter = User.find_by_id(data['inviter'])
               inviter_message = " Invited by #{inviter.name}." if inviter.respond_to?(:name)
@@ -52,10 +54,7 @@ module Lita
               message = "Message Type: #{type} : #{subtype}#{message} (unhandled)"
             end
 
-            # return unless log_chat
-
             lita_log.debug('< ========================== ChatLogger Start ====')
-            # lita_log.debug("  robot: #{robot}")
             lita_log.debug("  robot_id: #{robot_id}")
             lita_log.debug("  data: #{data}")
             lita_log.debug("  type: #{type}")
@@ -63,9 +62,16 @@ module Lita
 
             return if message == ''
 
-            log_file_name = "#{log_location}/#{room_id}-#{room_name}.log"
+            log_to_file(log_file_name(log_location, room_id, room_name), user_name, user_id, ts, message)
+          end
+
+          def log_file_name(log_location, room_id, room_name)
+            "#{log_location}/#{room_id}-#{room_name}.log"
+          end
+
+          def log_to_file(log_file_name, user_name, user_id, ts, message)
             File.open(log_file_name, 'a') do |f|
-              f.puts "[#{Time.now}] [#{user_name}/#{user_id}] #{message}"
+              f.puts "[#{Time.now}] [#{user_name}/#{user_id}] [#{ts}] #{message}"
             end
           end
 
@@ -76,7 +82,7 @@ module Lita
             when 'message_changed'
               previous_message = data['previous_message']
               p_message = previous_message['text'] || 'message-not-discovered'
-              p_dt = dt(previous_message['ts'])
+              p_ts = previous_message['ts']
 
               new_message = data['message']
               user_id = new_message['user']
@@ -84,7 +90,7 @@ module Lita
               user_name = user ? user.name : 'user-name-not-discovered'
               n_message = new_message['text'] || 'message-not-discovered'
 
-              message = "Message changed: Previous message : #{p_dt} - '#{p_message}' : New message '#{n_message}"
+              message = "Message changed: [#{p_ts}] #{p_message} -> #{n_message}"
               message += handle_message_files(previous_message, 'Previous: ')
               message += handle_message_files(new_message, 'New:      ')
             when 'message_deleted'
@@ -93,12 +99,12 @@ module Lita
               p_user = User.find_by_id(p_user_id)
               p_user_name = p_user ? p_user.name : 'user-name-not-discovered'
               p_message = previous_message['text'] || 'message-not-discovered'
-              p_dt = dt(previous_message['ts'])
+              p_ts = previous_message['ts']
               # message_deleted does NOT show who deleted it!!!! ??????
               user_id = p_user_id
               user_name = p_user_name
 
-              message = "Message deleted: Previous user '#{p_user_name}/#{p_user_id}' Previous message : #{p_dt} - '#{p_message}'"
+              message = "Message deleted: [#{p_user_name}/#{p_user_id}] [#{p_ts}] #{p_message}"
               message += handle_message_files(previous_message, 'Deleted: ')
             when 'message_replied'
               # Slack thread origin message repeated. This is sent together with each reply.
@@ -126,7 +132,7 @@ module Lita
               message = "#{subtype}#{message}"
             end
 
-            message = "Reply to thread with datetime : #{dt(data['thread_ts'])}\n\t#{message}" if data['thread_ts']
+            message = "Thread reply [#{data['thread_ts']}] #{message}" if data['thread_ts']
 
             message += handle_message_files(data)
 
@@ -135,7 +141,7 @@ module Lita
           end
 
           def dt(timestamp)
-            Time.at(timestamp.to_f).to_datetime
+            Time.at(timestamp.to_f)
           end
 
           def handle_message_files(data, prefix = '')
@@ -151,7 +157,7 @@ module Lita
           end
 
           def not_is_private?(room)
-            private = @robot.chat_service.conversation_info(room)['channel']['is_private']
+            private = room['channel']['is_private']
             lita_log.debug('Channel is private. Not logging this message.') if private
             !private
           end
