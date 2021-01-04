@@ -24,17 +24,21 @@ module Lita
 
             ts = data['event_ts']
             user_id = data['user']
-            user = User.find_by_id(user_id)
-            user_name = user ? user.name : 'user-name-not-discovered'
+            user_name = user_name_from_id(user_id)
             message = data['text'] || ''
+
+            lita_log.debug('< ========================== ChatLogger Start ====')
+            lita_log.debug("  robot_id: #{robot_id}")
+            lita_log.debug("  data: #{data}")
+            lita_log.debug("  type: #{type}")
+            lita_log.debug('  ================================================ >')
 
             case type
             when 'hello'
               room_id = 'Slack'
               room_name = 'Slack'
               user_id = robot_id
-              user = User.find_by_id(user_id)
-              user_name = user ? user.name : 'user-name-not-discovered'
+              user_name = user_name_from_id(user_id)
               message = 'Bot connected to Slack'
             when 'message'
               user_name, user_id, message = handle_message(data, user_name, user_id)
@@ -51,25 +55,43 @@ module Lita
               reaction = data['reaction']
               message = "reaction removed from #{r_type} [#{r_ts}] #{reaction}"
             when 'member_joined_channel'
-              inviter = User.find_by_id(data['inviter'])
-              inviter_message = " Invited by #{inviter.name}." if inviter.respond_to?(:name)
+              inviter_name = user_name_from_id(data['inviter'])
+              inviter_message = " Invited by #{inviter_name}." if inviter.respond_to?(:name)
               message = " -> #{user_name} Just joined the channel.#{inviter_message}"
             when 'member_left_channel'
               message = " <- #{user_name} Just left the channel."
+            when 'user_change'
+              room_id = 'Slack'
+              room_name = 'Slack'
+              user_id = data['user']['id']
+              user_name = user_name_from_id(user_id)
+              profile = data['user']['profile']
+
+              message = " -> #{user_name} Modified profile."
+              message += " display_name:#{profile['display_name']}"
+              message += " status_emoji:#{profile['status_emoji']}"
+              message += " status_text:#{profile['status_text']}"
+            when 'dnd_updated_user'
+              room_id = 'Slack'
+              room_name = 'Slack'
+              dnd_status = data['dnd_status']
+              message = " -> #{user_name} Modified Do Not Disturb."
+              message += " Do Not Disturb:#{dnd_status['dnd_enabled']}"
+              message += " DnD_start:#{dt(dnd_status['next_dnd_start_ts'])}"
+              message += " DnD_end:#{dt(dnd_status['next_dnd_end_ts'])}"
             else
               subtype = "Message SubType: #{data['subtype']} : " if data['subtype']
               message = "Message Type: #{type} : #{subtype}#{message} (unhandled)"
             end
 
-            lita_log.debug('< ========================== ChatLogger Start ====')
-            lita_log.debug("  robot_id: #{robot_id}")
-            lita_log.debug("  data: #{data}")
-            lita_log.debug("  type: #{type}")
-            lita_log.debug('  ================================================ >')
-
             return if message == ''
 
             log_to_file(log_file_name(log_location, room_id, room_name), user_name, user_id, ts, message)
+          end
+
+          def user_name_from_id(id)
+            user = User.find_by_id(id)
+            user ? user.name : 'user-name-not-discovered'
           end
 
           def log_file_name(log_location, room_id, room_name)
@@ -93,8 +115,7 @@ module Lita
 
               new_message = data['message']
               user_id = new_message['user']
-              user = User.find_by_id(user_id)
-              user_name = user ? user.name : 'user-name-not-discovered'
+              user_name = user_name_from_id(user_id)
               n_message = new_message['text'] || 'message-not-discovered'
 
               message = "Message changed: [#{p_ts}] #{p_message} -> #{n_message}"
@@ -103,8 +124,7 @@ module Lita
             when 'message_deleted'
               previous_message = data['previous_message']
               p_user_id = previous_message['user']
-              p_user = User.find_by_id(p_user_id)
-              p_user_name = p_user ? p_user.name : 'user-name-not-discovered'
+              p_user_name = user_name_from_id(p_user_id)
               p_message = previous_message['text'] || 'message-not-discovered'
               p_ts = previous_message['ts']
               # message_deleted does NOT show who deleted it!!!! ??????

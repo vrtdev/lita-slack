@@ -6,6 +6,13 @@ Version format based on <http://semver.org/>
 
 ## [Unreleased]
 
+## [2.2.7.0] - 2021-01-04
+
+### Added
+
+- user_change & dnd_updated_user logging handled
+
+
 ## [2.2.6.0] - 2020-12-15
 
 ### Added
